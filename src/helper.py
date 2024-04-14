@@ -1,5 +1,5 @@
 import speech_recognition as sr
-import google.generativeai import gemini
+import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 from gtts import gTTS
@@ -10,10 +10,30 @@ GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
 os.environ["GOOGLE_API_KEY"]=GOOGLE_API_KEY
 
 def voice_input():
-    pass
+    r=sr.Recognizer()
+    
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio=r.listen(source)
+    try:
+        text=r.recognize_google(audio)
+        print("you said: ", text)
+        return text
+    except sr.UnknownValueError:
+        print("sorry, I could not understand the audio")
+    except sr.RequestError as e:
+        print("I could not request a result from google speech recognition service: {0}",format(e))
 
-def text_to_speech():
-    pass
+def text_to_speech(text):
+    tts=gTTS(text=text, lang="en")
+    
+    tts.save("speech.mp3")
 
-def llm_model_object():
-    pass
+def llm_model_object(user_text):
+    #model="models/gemini-pro"
+    genai.configure(api_key=GOOGLE_API_KEY)
+    model=genai.GenerativeModel('gemini-pro')
+    response=model.generate_content(user_text)
+    result=response.text
+    
+    return result
